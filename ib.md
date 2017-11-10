@@ -1,5 +1,7 @@
 ## Installation Instructions for setting up InfiniBand on Fedora 26
 
+Please note. While these instructions are specific in parts, they will not help with debugging issues you may encounter. It may seem beginner ready, but this does require a small bit of Linux knowledge to get going. I do not provide much in the way of troubleshooting help.
+
 ### Step 1: Install Fedora
 
 #### Download the Iso
@@ -128,5 +130,33 @@ ip a
 
 # Look at the output of this command. lo is always connected, but generally en(p)#(s)#(f)# will be ethernet (where # is generally a number)
 # Generally, the first one below lo is what you want. On my system, it's ens2f0
+# It will say something like "up" or "lower up" often and will not say "no carrier"
+
+# If it says down, you may just need to poke it with "ip l set ens2f0 up", if it's still down, that is not the correct interface, and it's not connected
+
+# run dhclient on the connected interface to get an IP address
+dhclient ens2f0
+
+# where ens2f0 is replaced by the interface that is connected.
+
+# check to see if we have an IP address
+ip a l dev ens2f0
+
+# Look for an inet line. The thing directly after inet will be your IP address.
+
+# ex: inet 10.0.3.4/24 ...
+
+# If you have an IP address, you're good to go!
+```
+
+### Installing the IB drivers
+
+In general, our hopes are to use OEFD for drivers and such.
+
+We still need to nab some dependencies though.
+
+```bash
+# Install dependencies for IB
+dnf install -y opensm rdma opensm-libs libibumad libibverbs
 
 ```
