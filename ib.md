@@ -52,7 +52,7 @@ Here's a general layout:
 
 ```
 /dev/sda
-|- /dev/sda1 - ext4 primary partition with >8GB of space, mounted as ```/```
+|- /dev/sda1 - ext4 primary partition with >8GB of space, mounted as /
 \- /dev/sda2 - swap primary partition with ~8GB of space. (Optional)
 ```
 
@@ -60,8 +60,8 @@ Here's a general layout:
 
 ```
 /dev/sda
-|- /dev/sda1 - FAT16/FAT32 primary partition with 100MiB of space, mounted as ```/boot```
-|- /dev/sda2 - ext4 primary partition with >8GB of space, mounted as ```/```
+|- /dev/sda1 - FAT16/FAT32 primary partition with 100MiB of space, mounted as /boot
+|- /dev/sda2 - ext4 primary partition with >8GB of space, mounted as /
 \- /dev/sda3 - swap primary partition with ~8GB of space. (Optional)
 ```
 
