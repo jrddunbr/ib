@@ -75,7 +75,9 @@ At Clarkson University, we have a student-operated [mirror](http://mirror.clarks
 
 The Mirror URL is as follows to use in the dialog that appears when you select the Mirror for Fedora 26:
 
-```http://mirror.clarkson.edu/fedora/linux/releases/26/Everything/x86_64/os/```
+```
+http://mirror.clarkson.edu/fedora/linux/releases/26/Everything/x86_64/os/
+```
 
 Once you enter that, click Done. It will take a moment, as it gathers all of the package information.
 
