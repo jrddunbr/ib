@@ -97,7 +97,7 @@ Once you know you have a connection, continue.
 
 Run all of the below with the root user (or use ```sudo -i``` on the user account)
 
-```
+```bash
 # update the system (this is mandatory or you will hate yourself later)
 dnf update
 
@@ -119,12 +119,12 @@ reboot
 
 On reboot:
 
-```
+```bash
 # When you reboot, there will not be an IP address. Get one via DHCP
 # First, we need to determine which ethernet adapter is connected to the internet.
 ip a
 
 # Look at the output of this command. lo is always connected, but generally en(p)#(s)#(f)# will be ethernet (where # is generally a number)
-# Generally, the first one below lo is what you want. On my system, it's ens2f0 
+# Generally, the first one below lo is what you want. On my system, it's ens2f0
 
 ```
