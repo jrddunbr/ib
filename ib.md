@@ -1,8 +1,10 @@
 ## Installation Instructions for setting up InfiniBand on Fedora 26
 
-Please note. While these instructions are specific in parts, they will not help with debugging issues you may encounter. It may seem beginner ready, but this does require a small bit of Linux knowledge to get going. I do not provide much in the way of troubleshooting help.
+**NOTE and Disclaimer** - While these instructions are specific in parts, they will not help with debugging issues you may encounter. It may seem beginner ready, but this does require a good bit of Linux knowledge or a lot of debugging skills (including the all-helpful Google open on another computer) to get things going. I do not provide much in the way of troubleshooting help, where I would expect some general Linux knowledge to have the answer.
 
-### Step 1: Install Fedora
+I do not take responsibility for the issues you may encounter, or if you completely wipe your system while using ```dd```, for example.
+
+### Step 1: Install Fedora 26
 
 #### Download the Iso
 
@@ -50,7 +52,7 @@ Once the bootable drive has booted, you will see the installer. Just flow throug
 
 Here's a general layout:
 
-#### For MBR based installs:
+##### For MBR based installs:
 
 ```
 /dev/sda
@@ -58,7 +60,7 @@ Here's a general layout:
 \- /dev/sda2 - swap primary partition with ~8GB of space. (Optional)
 ```
 
-#### For UEFI based installs:
+##### For UEFI based installs:
 
 ```
 /dev/sda
@@ -83,11 +85,11 @@ http://mirror.clarkson.edu/fedora/linux/releases/26/Everything/x86_64/os/
 
 Once you enter that, click Done. It will take a moment, as it gathers all of the package information.
 
-Next, select the software configuration menu. I selected Server on the left side, and then I selected C/C++ libraries, network utilities, RPM build tools, and other useful tools of which I cannot recall. (Note to self - update this)
+Next, select the software configuration menu. I selected Server on the left side, and then I selected C/C++ libraries, network utilities, RPM build tools, and other useful tools of which I cannot recall. **(Note to self - update this)**
 
 Once you do that, go back to the main menu (click done) click Begin Install, and then the magic begins.
 
-Once you do that, it will prompt you for the root password, and a username and password. You will want to make the user administrator. (This means they are added to the wheel group and can use ```sudo``` which is super important later, but so long as you rembmer the root password, you can get anywhere)
+It will then prompt you for the root password, and a username and password. You will want to make the user administrator. (This means they are added to the wheel group and can use ```sudo```, which is super important later, but so long as you rembmer the root password, you can get anywhere)
 
 After that, you wait for about 30+ minutes as it downloads and installs the packages. The time it takes depends on your disk and network speed for the most part, but a good CPU helps a lot as well.
 
@@ -161,7 +163,6 @@ We still need to nab some dependencies though.
 # Install dependencies for IB
 dnf install -y opensm rdma opensm-libs libibumad libibverbs libibverbs-devel glib2-devel  libibumad-devel opensm-devel libibmad tk libibmad-devel tk-devel libibcommon libvma librdmacm openssl-devel ibutils infiniband-diags
 
-
 # note, I am adding some of these after the fact, they may not be able to be installed yet. Install them as you can otherwise
 
 # 7z, a file decompression utility (because I like it, tar and unzip are also good)
@@ -173,6 +174,8 @@ dnf install -y p7zip p7zip-plugins
 ```
 
 We need to fetch the drivers from OFED's page as well.
+
+#### Custom Drivers
 
 Go [here](http://downloads.openfabrics.org/OFED/ofed-4.8-1/) and then get the latest version. (Note, if a newer version has come out of 4.8.1, go up a folder and then get the newest version that is not daily AND is a greater number than your kernel version, found from running ```uname -a``` and reading the third field.)
 
@@ -213,6 +216,132 @@ rpmbuild -ba ~/rpmbuild/SPECS/dapl.spec
 
 ```
 
+### Connectiong IPoIB
+
+First, make sure that your connection is established with ```ibstat```.
+
+```
+ibstat
+```
+
+The output will spit out a bunch of information about the link, but the two things we care about are the ```State``` and ```Physical State``` lines under the port definition.
+
+If the link state is ```Active```, then you are ready to go onto the next step.
+
+If the link state is ```Down``` and the physical state is ```Polling```, then you need to start ```opensm``` (the OPEN Subnet Manager) on the master server.
+
+If you get something else and the link state is down, then you need to check the physical connections.
+
+#### Example Output
+
+Here's an example output of a happy InfiniBand link: (this is from the internet)
+
+```
+# ibstat
+ CA 'mlx4_0'
+       CA type: MT26428
+       Number of ports: 1
+       Firmware version: 2.9.1000
+       Hardware version: b0
+       Node GUID: 0x0002c903004af586
+       System image GUID: 0x0002c903004af589
+       Port 1:
+               State: Active
+               Physical state: LinkUp
+               Rate: 40
+               Base lid: 250
+               LMC: 0
+               SM lid: 250
+               Capability mask: 0x0251086a
+               Port GUID: 0x0002c903004af587
+               Link layer: InfiniBand
+```
+
+### Establish IP link
+
+Now that we have established the physical layer, we need to establish IP addresses. Potentially, you could have a router or DHCP server later which can do this automatically, but this assumes such an action has not been carried out.
+
+**NOTE** - This is not presistent over reboots!
+
+#### Find the link
+
+From the output of the below program, determine the interface name for the Infiniband network. It should be ```ib0``` in most configurations.
+
+```
+ip l
+```
+
+#### Set the link to enabled
+
+Set the interface to the ```Up``` state. This permits IP traffic to traverse the network.
+
+```
+ip l set dev ib0 up
+```
+
+#### Add an IP address
+
+Set the IP address of the network. In this case, I am setting the IP to ```10.0.3.2\24```, which is an IP of ```10.0.3.2``` with a [CDIR](https://doc.m0n0.ch/quickstartpc/intro-CIDR.html) subnet mask equivelant to the netmask ```255.255.255.0```. You also specify that you are adding the IP address, and that you want it on device ```ib0```.
+
+```
+ip a add 10.0.3.2/24 dev ib0
+```
+
+#### Verify the IP address and routes
+
+Now, verify that you have correctly established the IP address.
+
+```
+ip a
+```
+
+It should list the IPv4 address that you now have. The line you care about is the ```inet``` line. The first quad octet (seperated by dots) is the IP address, followed by the CDIR notation for the subnet (in this case, ```\24```).
+
+Example: (this is my WiFi interface on my laptop)
+
+```
+3: wlp1s0: <BROADCAST,MULTICAST,UP,LOWER_UP> mtu 1500 qdisc mq state UP group default qlen 1000
+    link/ether f4:96:34:eb:48:26 brd ff:ff:ff:ff:ff:ff
+    inet 192.168.8.183/24 brd 192.168.8.255 scope global dynamic wlp1s0
+       valid_lft 41925sec preferred_lft 41925sec
+    inet6 fde5:8f5b:570a::569/128 scope global
+       valid_lft forever preferred_lft forever
+    inet6 fde5:8f5b:570a:0:b7b7:6882:475c:4f80/64 scope global noprefixroute
+       valid_lft forever preferred_lft forever
+    inet6 fe80::6a5b:a280:4863:8348/64 scope link
+       valid_lft forever preferred_lft forever
+```
+
+
+You may also want to check the routes:
+
+```
+ip r
+```
+
+This will show the default route for each subnet and to which interface it should go to. Generally, when you set yourself an IP, it should be on a seperate subnet from other IP addresses that are available on other interfaces such as other subnets.
+
+In general, for most cases, the ```10.0.0.0/8``` is a perfectly good place to fiddle with this, and if you have a ```/24``` in this space, there is plenty of octets worth of space to fiddle (in fact, over 65k unique ```/24``` subnets within a ```/8```).
+
+Example: (this is also my laptop)
+
+```
+default via 192.168.8.1 dev wlp1s0 proto static metric 600
+192.168.8.0/24 dev wlp1s0 proto kernel scope link src 192.168.8.183 metric 600
+```
+
+#### Addendum: Get a DHCP leased IP address
+
+This is particularly useful if you want to recieve an IP address for connecting over ethernet to the normal network for SSH access to the servers. If you configure a DHCP server on a server, you could also use this command to recieve an IP address.
+
+This command below specifies to run the dhclient program (which gets an IP over DHCP) from the ```ens2f0``` interface. Look at ```ip l```'s output to determine the interface you need. Often, they are formatted en(s#)(p#)(f#) to be as unique as possible against other interfaces on the system.
+
+```
+dhclient ens2f0
+```
+
+In a moment, if you did it to the correct device, you will have an IP address, which will be shown by the output of ```ip a```.
+
 ### Testing the capabiliites of IPoIB
 
 To test the speed of the IB network from the IP layer, we will be using the program ```iperf```.
@@ -221,4 +350,42 @@ If you didn't install it already, do that now.
 
 ```
 dnf install -y iperf
+```
+
+You will need this program on both the server and the client.
+
+To run the server side program, enter the below:
+
+```
+iperf -s
+```
+
+To run the client side program (the server must be running, and only one client can connect at a time):
+
+```
+iperf -c 10.0.3.2
+```
+
+where ```10.0.3.2``` is replaced with the IP address where the iperf server is running.
+
+In a moment, you will see an output, which specifies the size of data that it moved in a specific amount of time, as well as the general link speed. Check the units to see which is which.
+
+### Random Debugging Tidbits
+
+If you forgot to add a user to administrator, you can do it later with the following command.
+
+```
+gpasswd -a <username> wheel
+```
+
+Printing the users (this shows their name, uid, shell, etc)
+
+```
+getent passwd
+```
+
+Printing the groups (this shows the groups, gid, and their memeber users)
+
+```
+getent group
 ```
