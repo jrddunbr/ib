@@ -155,8 +155,70 @@ In general, our hopes are to use OEFD for drivers and such.
 
 We still need to nab some dependencies though.
 
+#### Dependencies
+
 ```bash
 # Install dependencies for IB
-dnf install -y opensm rdma opensm-libs libibumad libibverbs
+dnf install -y opensm rdma opensm-libs libibumad libibverbs libibverbs-devel glib2-devel  libibumad-devel opensm-devel libibmad tk libibmad-devel tk-devel libibcommon libvma librdmacm openssl-devel ibutils infiniband-diags
 
+
+# note, I am adding some of these after the fact, they may not be able to be installed yet. Install them as you can otherwise
+
+# 7z, a file decompression utility (because I like it, tar and unzip are also good)
+dnf install -y p7zip p7zip-plugins
+
+# If you're using a GUI, GUI for 7z: (commented to prevent mistakes such as installing Xorg)
+#dnf install -y p7zip-gui
+
+```
+
+We need to fetch the drivers from OFED's page as well.
+
+Go [here](http://downloads.openfabrics.org/OFED/ofed-4.8-1/) and then get the latest version. (Note, if a newer version has come out of 4.8.1, go up a folder and then get the newest version that is not daily AND is a greater number than your kernel version, found from running ```uname -a``` and reading the third field.)
+
+```bash
+# Download the RPM sources
+wget http://downloads.openfabrics.org/OFED/ofed-4.8-1/OFED-4.8-1-rc2.tgz -O ofed.tgz
+
+# Extract the files
+7z x ofed.tgz
+tar -xvf ofed.tar
+
+# Optionally, remove the archives
+rm ofed.t*
+
+# cd into the new folder.
+cd ofed..somepath../SRPMS
+
+# Create the sources for installing from.
+rpm -ihv *.rpm
+
+# move to build directory
+cd ~/rpmbuild/SPECS
+
+# Run ls here. You should find a bunch of .spec files. If not, something is wrong.
+ls
+
+# This next stuff will take much longer than everything else, since it's compiling all of the packages from source.
+
+# Install the necessary requirements (in this order)
+rpmbuild -ba ~/rpmbuild/SPECS/libfabric.spec
+rpmbuild -ba ~/rpmbuild/SPECS/libibscif.spec
+rpmbuild -ba ~/rpmbuild/SPECS/infiniband-diags.spec
+rpmbuild -ba ~/rpmbuild/SPECS/opensm.spec
+rpmbuild -ba ~/rpmbuild/SPECS/ibpd.spec
+rpmbuild -ba ~/rpmbuild/SPECS/dapl.spec
+
+# Throw a reboot in here somewhere...
+
+```
+
+### Testing the capabiliites of IPoIB
+
+To test the speed of the IB network from the IP layer, we will be using the program ```iperf```.
+
+If you didn't install it already, do that now.
+
+```
+dnf install -y iperf
 ```
