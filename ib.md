@@ -26,7 +26,9 @@ To do this, I ran the following commands:
 
 I then use ```dd``` to write the file to the drive. The command looks as below:
 
-```dd if=fedora.iso of=/dev/sdb bs=4M```
+```bash
+dd if=fedora.iso of=/dev/sdb bs=4M
+```
 
 ```dd``` is the command, ```if=<path to iso>``` is the path to the iso file on your local system, and ```of=/dev/sdb``` is the path to the file. ```bs=4M``` changes the size to copy per iteration, and generally the file will copy fastest at around 4M, but sometimes lower. Depends on your hardware. Bigger (or smaller) does not necessarily regulate how fast it is.
 
@@ -220,7 +222,7 @@ rpmbuild -ba ~/rpmbuild/SPECS/dapl.spec
 
 First, make sure that your connection is established with ```ibstat```.
 
-```
+```bash
 ibstat
 ```
 
@@ -267,7 +269,7 @@ Now that we have established the physical layer, we need to establish IP address
 
 From the output of the below program, determine the interface name for the Infiniband network. It should be ```ib0``` in most configurations.
 
-```
+```bash
 ip l
 ```
 
@@ -275,7 +277,7 @@ ip l
 
 Set the interface to the ```Up``` state. This permits IP traffic to traverse the network.
 
-```
+```bash
 ip l set dev ib0 up
 ```
 
@@ -283,7 +285,7 @@ ip l set dev ib0 up
 
 Set the IP address of the network. In this case, I am setting the IP to ```10.0.3.2\24```, which is an IP of ```10.0.3.2``` with a [CDIR](https://doc.m0n0.ch/quickstartpc/intro-CIDR.html) subnet mask equivelant to the netmask ```255.255.255.0```. You also specify that you are adding the IP address, and that you want it on device ```ib0```.
 
-```
+```bash
 ip a add 10.0.3.2/24 dev ib0
 ```
 
@@ -291,7 +293,7 @@ ip a add 10.0.3.2/24 dev ib0
 
 Now, verify that you have correctly established the IP address.
 
-```
+```bash
 ip a
 ```
 
@@ -315,7 +317,7 @@ Example: (this is my WiFi interface on my laptop)
 
 You may also want to check the routes:
 
-```
+```bash
 ip r
 ```
 
@@ -336,7 +338,7 @@ This is particularly useful if you want to recieve an IP address for connecting 
 
 This command below specifies to run the dhclient program (which gets an IP over DHCP) from the ```ens2f0``` interface. Look at ```ip l```'s output to determine the interface you need. Often, they are formatted en(s#)(p#)(f#) to be as unique as possible against other interfaces on the system.
 
-```
+```bash
 dhclient ens2f0
 ```
 
@@ -348,7 +350,7 @@ To test the speed of the IB network from the IP layer, we will be using the prog
 
 If you didn't install it already, do that now.
 
-```
+```bash
 dnf install -y iperf
 ```
 
@@ -356,13 +358,13 @@ You will need this program on both the server and the client.
 
 To run the server side program, enter the below:
 
-```
+```bash
 iperf -s
 ```
 
 To run the client side program (the server must be running, and only one client can connect at a time):
 
-```
+```bash
 iperf -c 10.0.3.2
 ```
 
@@ -374,18 +376,18 @@ In a moment, you will see an output, which specifies the size of data that it mo
 
 If you forgot to add a user to administrator, you can do it later with the following command.
 
-```
+```bash
 gpasswd -a <username> wheel
 ```
 
 Printing the users (this shows their name, uid, shell, etc)
 
-```
+```bash
 getent passwd
 ```
 
 Printing the groups (this shows the groups, gid, and their memeber users)
 
-```
+```bash
 getent group
 ```
