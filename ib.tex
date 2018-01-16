@@ -1,0 +1,40 @@
+\documentclass{article}
+
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{hyperref}
+
+\lstdefinestyle{mystyle}{
+	numbers=left
+}
+
+\begin{document}
+\title{Working with an Infiniband Cluster}
+\author{Jared Dunbar}
+\date{\today}
+\maketitle
+\tableofcontents
+
+\section{Installing Fedora 26}
+
+When picking an operating system for use with Infiniband, you want to watch the kernel versions used by the operating system, and the kernel version required by OFED.
+
+In general, newer versions of the kernel will work alright, so if you use OFED designed for kernel 4.8, it will probably work alright with kernel 4.10 installed.
+
+In the case of Fedora, the kernel versions are \href{https://en.wikipedia.org/wiki/Fedora_(operating_system)#Releases}{reported on Wikipedia}, so it's easy to see what versions of the kernel are shipped with each version of Fedora. You can also look at \href{http://downloads.openfabrics.org/OFED/}{the releases page for OFED} to see what releases use what kernels.
+
+\section{Software Configuration}
+
+\section{Setting up the IB drivers}
+
+\section{Configuring and Testing IB}
+
+\begin{lstlisting}[language=Python, caption=Python Example]
+impot thing as pythem
+
+print("Hello World")
+
+\end{lstlisting}
+
+\end{document}
