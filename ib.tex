@@ -9,6 +9,8 @@
 	numbers=left
 }
 
+\setlength{\parskip}{1.5mm}
+
 \begin{document}
 \title{Working with an Infiniband Cluster}
 \author{Jared Dunbar}
@@ -23,6 +25,34 @@ When picking an operating system for use with Infiniband, you want to watch the 
 In general, newer versions of the kernel will work alright, so if you use OFED designed for kernel 4.8, it will probably work alright with kernel 4.10 installed.
 
 In the case of Fedora, the kernel versions are \href{https://en.wikipedia.org/wiki/Fedora_(operating_system)#Releases}{reported on Wikipedia}, so it's easy to see what versions of the kernel are shipped with each version of Fedora. You can also look at \href{http://downloads.openfabrics.org/OFED/}{the releases page for OFED} to see what releases use what kernels.
+
+In this case, the release I was using was for kernel 4.8, and the kernel I was targeting was 4.11, so we're good.
+
+From here, I explain how to install Fedora 26. Newer Fedora installs may be similar, but no gurantee.
+
+\subsection{Download the ISO file}
+
+I fetched Fedora from \href{http://mirror.clarkson.edu/fedora/linux/releases/}{my local mirror}. Once at that path, I clicked on Release 26, then Everything, then x86\_64, then iso. (\href{http://mirror.clarkson.edu/fedora/linux/releases/26/Everything/x86_64/iso}{link})
+
+\subsection{DD the ISO to a flash drive or DVD}
+
+I copied the installation media to my flash drive using the \begin{verbatim}dd\end{verbatim} program. This procedure is about the same for copying to a DVD or CD, more on that in a moment.
+
+To be specific, on Windows especially, you cannot just copy the file onto the flash drive using the file browser and expect it to work. That will undoubtedly fail. What you need to do is use Win32DD or similar (on Windows) or dd (on Mac, Linux).
+
+On my Linux box, I ran lsblk to see what the partition layout was on my computer. I found the size of the flash drive, and discovered what the drive name was (ex, /dev/sdb). If you can't tell, unplug the drive, run the program, and plug it back in, and see what changed to find what the block device name is.
+
+Then, I used the following command as the root user (or sudo) to write the ISO file to the flash drive.
+
+dd if=fedora.iso of=/dev/sdb bs=4M
+
+To be specific, dd is the command, if=<path to iso> is the path to the ISO file on your local system, and of=/dev/sdb is the path to the block device. bs=4M changes the size of the file to copy at a time (it copies 4M of data at a time into a ram buffer).
+
+Warning - using dd improperly can overwrite your operating system and corrupt filesystems.
+
+Once you finish, you will want to run sync. This will force all of the data that is not on the flash drive to the flash drive. When sync completes, it is safe to remove the flash drive.
+
+\subsection{Booting the system}
 
 \section{Software Configuration}
 
